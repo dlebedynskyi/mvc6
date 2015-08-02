@@ -1,0 +1,10 @@
+{
+  "AppSettings": {
+    "SiteTitle": "wa"
+  },
+  "Data": {
+    "DefaultConnection": {
+      "ConnectionString": "Server=(localdb)\\mssqllocaldb;Database=aspnet5-wa-6f86c8fb-d53b-428a-a784-cee4b7d64a8e;Trusted_Connection=True;MultipleActiveResultSets=true"
+    }
+  }
+}
