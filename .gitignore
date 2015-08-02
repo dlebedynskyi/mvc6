@@ -204,3 +204,9 @@ FakesAssemblies/
 
 # Visual Studio 6 workspace options file
 *.opt
+
+
+# Node and Bower folders
+
+node_modules
+wwwroot/lib

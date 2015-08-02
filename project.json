@@ -30,6 +30,8 @@
   },
 
   "commands": {
+    "kdev": "Microsoft.AspNet.Hosting --server Kestrel --ASPNET_ENV Development  --config hosting.ini",
+    "kstage": "Microsoft.AspNet.Hosting --server Kestrel --ASPNET_ENV Staging  --config hosting.ini",
     "kestrel": "Microsoft.AspNet.Hosting --server Kestrel --config hosting.ini",
     "web": "Microsoft.AspNet.Hosting --server Microsoft.AspNet.Server.WebListener --config hosting.ini"
   },
