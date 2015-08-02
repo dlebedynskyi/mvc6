@@ -4,8 +4,12 @@ var gulp = require("gulp"),
   rimraf = require("rimraf"),
   concat = require("gulp-concat"),
   cssmin = require("gulp-cssmin"),
+  less = require("gulp-less-sourcemap"),
   uglify = require("gulp-uglify"),
-  project = require("./project.json");
+  project = require("./project.json"),
+  changed = require('gulp-changed'),
+  notify = require('gulp-notify'),
+  plumber = require('gulp-plumber');
 
 var paths = {
   webroot: "./" + project.webroot + "/"
@@ -13,6 +17,8 @@ var paths = {
 
 paths.js = paths.webroot + "js/**/*.js";
 paths.minJs = paths.webroot + "js/**/*.min.js";
+paths.less = paths.webroot + "less/**/*.less";
+paths.lessDest = paths.webroot + "css";
 paths.css = paths.webroot + "css/**/*.css";
 paths.minCss = paths.webroot + "css/**/*.min.css";
 paths.concatJsDest = paths.webroot + "js/site.min.js";
@@ -28,6 +34,19 @@ gulp.task("clean:css", function(cb) {
 
 gulp.task("clean", ["clean:js", "clean:css"]);
 
+
+gulp.task('build:less', function () {
+    return gulp.src([paths.less, '!' + paths.less + '/includes'])
+        .pipe(plumber({ errorHandler: notify.onError("Error: <%= error.message %>") }))
+        .pipe(changed(paths.lessDest, { extension: '.css' }))
+        .pipe(less({
+            sourceMap: {
+                sourceMapRootpath: '../less' // Optional absolute or relative path to your LESS files 
+            }
+        }))
+        .pipe(gulp.dest(paths.lessDest));
+});
+
 gulp.task("min:js", function() {
   gulp.src([paths.js, "!" + paths.minJs], {
       base: "."
@@ -42,6 +61,10 @@ gulp.task("min:css", function() {
     .pipe(concat(paths.concatCssDest))
     .pipe(cssmin())
     .pipe(gulp.dest("."));
+});
+
+gulp.task('watch:less', function () {
+    return gulp.watch([paths.less], ['build:less', 'min:css']);
 });
 
 gulp.task("min", ["min:js", "min:css"]);
