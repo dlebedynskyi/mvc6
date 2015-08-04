@@ -212,3 +212,4 @@ wwwroot/js/*.min.js
 wwwroot/js/*.map
 wwwroot/css/*.min.css
 wwwroot/css/*.map
+.vs

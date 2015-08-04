@@ -25,6 +25,11 @@ namespace mvc6
         // Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
+            //Enable Options for application
+            services.AddOptions();
+            services.Configure<Options.AppSettings>(Configuration.GetConfigurationSection("AppSettings"));
+
+            //Enable MVC middleware
             services.AddMvc();
             // Uncomment the following line to add Web API services which makes it easier to port Web API 2 controllers.
             // You will also need to add the Microsoft.AspNet.Mvc.WebApiCompatShim package to the 'dependencies' section of project.json.
