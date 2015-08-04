@@ -34,11 +34,15 @@
     },
 
     "exclude": [
+        ".git",
+        ".vs",
         "wwwroot",
         "node_modules",
         "bower_components"
     ],
     "publishExclude": [
+        ".git",
+        ".vs",
         "node_modules",
         "bower_components",
         "**.xproj",
@@ -46,7 +50,7 @@
         "**.vspscc"
     ],
     "scripts": {
-        "prerestore": [ "npm install", "bower install" ],
-        "prepublish": [ "gulp clean", "gulp build", "gulp prod"]
+        "postrestore": [ "npm install", "bower install" ],
+        "prepublish": [ "gulp clean", "gulp build", "gulp prod" ]
     }
 }

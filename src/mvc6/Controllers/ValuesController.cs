@@ -4,21 +4,21 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 
-namespace WA4._6.Controllers
+namespace mvc6.Controllers
 {
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
         // GET: api/values
-        [HttpGet]
+        [HttpGet("{id:string?}", Order = 2)]
         public IEnumerable<string> Get()
         {
             return new string[] { "value1", "value2" };
         }
 
         // GET api/values/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("{id:int}", Order = 1)]
+        public string GetById(int id)
         {
             return "value";
         }
