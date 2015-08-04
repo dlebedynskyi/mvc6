@@ -205,8 +205,10 @@ FakesAssemblies/
 # Visual Studio 6 workspace options file
 *.opt
 
+#project specific 
 
-# Node and Bower folders
-
-node_modules
 wwwroot/lib
+wwwroot/js/*.min.js
+wwwroot/js/*.map
+wwwroot/css/*.min.css
+wwwroot/css/*.map

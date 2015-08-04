@@ -10,7 +10,8 @@ namespace mvc6.Controllers
     public class ValuesController : Controller
     {
         // GET: api/values
-        [HttpGet("{id:string?}", Order = 2)]
+        //this is IIS fix. work without order on IIS express and self-host
+        [HttpGet("", Order = 2)]
         public IEnumerable<string> Get()
         {
             return new string[] { "value1", "value2" };
