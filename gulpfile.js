@@ -1,108 +1,147 @@
-/// <binding Clean='clean' />
+/// <binding BeforeBuild='clean' AfterBuild='build' Clean='clean' ProjectOpened='watch' />
 'use strict';
 var gulp = require("gulp"),
-  gutil = require("gulp-util"),
   rimraf = require("rimraf"),
-  concat = require("gulp-concat"),
-  cssmin = require("gulp-cssmin"),
-  less = require("gulp-less-sourcemap"),
-  uglify = require("gulp-uglify"),
-  project = require("./project.json"),
-  changed = require('gulp-changed'),
-  notify = require('gulp-notify'),
-  plumber = require('gulp-plumber'),
-  mainBowerFiles = require('main-bower-files');
+  mainBowerFiles = require('main-bower-files'),
+  config = require("./gulp.config.js")();
 
-var paths = {
-    webroot: "./" + project.webroot + "/",
-    bowerfile: "./bower.json",
-    
-};
+var $ = require('gulp-load-plugins')({
+       lazy: true,
+       rename: {
+           'gulp-less-sourcemap': 'less'
+       }
+   });
 
-paths.webrootLib = paths.webroot + 'lib/';
-paths.js = paths.webroot + "js/**/*.js";
-paths.minJs = paths.webroot + "js/**/*.min.js";
-paths.less = paths.webroot + "less/**/*.less";
-paths.lessDest = paths.webroot + "css";
-paths.css = paths.webroot + "css/**/*.css";
-paths.minCss = paths.webroot + "css/**/*.min.css";
-paths.concatJsDest = paths.webroot + "js/site.min.js";
-paths.concatCssDest = paths.webroot + "css/site.min.css";
+/* PATTERNS */
 
-gulp.task("clean:js", function(cb) {
-  rimraf(paths.concatJsDest, cb);
+/*LESS */
+gulp.task('build:less', function () {
+    return gulp.src(config.from.less)
+        .pipe($.plumber({ errorHandler: $.notify.onError("Error: <%= error.message %>") }))
+        .pipe($.changed(config.to.less, { extension: '.css' }))
+        .pipe($.less({
+            sourceMap: {
+                sourceMapRootpath: config.deps.lessSourceMapRoot
+            }
+        }))
+        .pipe(gulp.dest(config.to.less))
+        .pipe($.notify("Less:files build : <%= file.relative %>!"));
 });
 
-gulp.task("clean:css", function(cb) {
-  rimraf(paths.concatCssDest, cb);
+gulp.task('clean:less', function (cb) {
+    //add clean for less generated files if required
+    cb();
+});
+/* CSS */
+
+
+/* LIBS */
+gulp.task('build:lib', ["clean:lib"], function () {
+    var env = $.util.env.env || "development";
+    log('build for ' + env);
+    return gulp.src(mainBowerFiles({ env: env }), { base: config.from.bowerPath })
+               .pipe(gulp.dest(config.to.lib));
 });
 
 gulp.task("clean:lib", function (cb) {
-    rimraf(paths.webrootLib, cb);
+    rimraf(config.to.lib, cb);
 });
 
-gulp.task("clean", ["clean:js", "clean:css", "clean:lib"]);
+/* JS  */
 
+gulp.task('build:jsx', function () {
 
-gulp.task('build:less', function () {
-    return gulp.src([paths.less, '!' + paths.less + '/includes'])
-        .pipe(plumber({ errorHandler: notify.onError("Error: <%= error.message %>") }))
-        .pipe(changed(paths.lessDest, { extension: '.css' }))
-        .pipe(less({
-            sourceMap: {
-                sourceMapRootpath: '../less' 
-            }
-        }))
-        .pipe(gulp.dest(paths.lessDest));
+    return gulp.src(config.from.jsx)
+            .pipe($.sourcemaps.init())
+            .pipe($.babel())
+            .pipe($.concat(config.concat.js))
+            .pipe($.sourcemaps.write('.', { sourceRoot: config.deps.jsxSourceRoot }))
+            .pipe(gulp.dest(config.to.js));
+        
 });
 
-gulp.task('build:lib',["clean:lib"], function () {
-    var env = gutil.env.env || "development";
-    log('build for ' + env);
-    return gulp.src(mainBowerFiles({ env: env}), { base: './bower_components' })
-               .pipe(gulp.dest(paths.webrootLib));
+gulp.task('clean:jsx', function (cb) {
+    rimraf(config.to.js + config.concat.js, function () {
+        rimraf(config.to.js + config.concat.js + ".map", cb);
+    });
 });
 
-gulp.task('build', ["build:less", "build:lib"]);
+/* images */
+
+gulp.task('build:images', function () {
+    return gulp.src(config.from.images)
+       .pipe(gulp.dest(config.to.images));
+});
+
+gulp.task("clean:images", function (cb) {
+    rimraf(config.to.images, cb);
+});
+
+/* PRODUCTION */
+gulp.task('min:css', ['clean:mincss'], function () {
+    log('css: working on ' + config.from.css);
+    return gulp.src(config.from.css)
+    .pipe($.concat(config.concat.Css))
+    .pipe($.cssmin())
+    .pipe(gulp.dest("."));
+});
+
+gulp.task('clean:mincss', function (cb) {
+    rimraf(config.concat.Css, cb);
+});
+
+gulp.task('min:js',['clean:minjs'], function () {
+    return gulp.src(config.from.js)
+        .pipe($.concat(config.concat.minJs))
+        .pipe($.uglify())
+        .pipe(gulp.dest(config.to.js));
+});
+
+
+gulp.task('clean:minjs', function (cb) {
+    rimraf(config.to.js + config.concat.minJs, cb);
+});
+
 
 
 gulp.task("prod:lib", ["clean:lib"], function () {
-    return gulp.src(mainBowerFiles({ env: "production"}), { base: './bower_components' })
-             .pipe(gulp.dest(paths.webrootLib));
+    return gulp.src(mainBowerFiles({ env: "production" }), { base: config.from.bowerPath })
+             .pipe(gulp.dest(config.to.lib));
 });
 
 
-gulp.task("min:js", function() {
-  gulp.src([paths.js, "!" + paths.minJs], {
-      base: "."
-    })
-    .pipe(concat(paths.concatJsDest))
-    .pipe(uglify())
-    .pipe(gulp.dest("."));
-});
-
-gulp.task("min:css", function() {
-  gulp.src([paths.css, "!" + paths.minCss])
-    .pipe(concat(paths.concatCssDest))
-    .pipe(cssmin())
-    .pipe(gulp.dest("."));
-});
-
+/* WATCH */
 gulp.task('watch:less', function () {
-    return gulp.watch([paths.less], ['build:less', 'min:css']);
+    gulp.watch(config.watch.less, ['build:less']);
 });
 
-gulp.task("min", ["min:js", "min:css"]);
+gulp.task('watch:jsx', function () {
+    gulp.watch(config.watch.jsx, ['build:jsx']);
+});
 
+gulp.task('watch:images', function () {
+    gulp.watch(config.watch.images, ['build:images']);
+});
+
+gulp.task('watch', ['watch:less', 'watch:jsx', 'watch:images']);
+
+
+/* WRAPPERS */ 
+
+gulp.task('prod', ['min:css', 'min:js', 'prod:lib']);
+gulp.task('build', ['build:less', 'build:lib', 'build:jsx', "build:images"]);
+gulp.task("clean", ["clean:jsx", "clean:minjs", "clean:lib","clean:less", "clean:mincss", "clean:images"]);
+
+/* HELPERS */
 
 function log(msg) {
     if (typeof (msg) === 'object') {
         for (var item in msg) {
             if (msg.hasOwnProperty(item)) {
-                gutil.log(gutil.colors.blue(msg[item]));
+                $.util.log($.util.colors.blue(msg[item]));
             }
         }
     } else {
-        gutil.log(gutil.colors.blue(msg));
+        $.util.log($.util.colors.blue(msg));
     }
 }
