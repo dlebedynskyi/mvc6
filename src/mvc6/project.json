@@ -25,13 +25,7 @@
     },
 
     "frameworks": {
-        "dnx451": {
-            "dependencies": {
-                "Microsoft.Framework.Configuration": "1.0.0-beta6",
-                "Microsoft.Framework.Configuration.Json": "1.0.0-beta6"
-            }
-
-        }
+        "dnxcore50": { }
     },
 
     "exclude": [
