@@ -1,5 +1,5 @@
 ﻿module.exports = function () {
-    var project = require("./project.json");
+    var project = require("../project.json");
 
     var config = {
         webroot: "./" + project.webroot + "/",
